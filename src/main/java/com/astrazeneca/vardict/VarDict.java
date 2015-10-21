@@ -1528,15 +1528,20 @@ public class VarDict {
                     final int position;
                     final Cigar cigar;
 
-                    if (conf.performLocalRealignment) {
-                        // Modify the CIGAR for potential mis-alignment for indels at the end of reads to softclipping and let VarDict's
-                        // algorithm to figure out indels
-                        Tuple2<Integer, String> mc = modifyCigar(indel, ref, record.getAlignmentStart(), record.getCigarString(), querySequence, queryQuality, conf.lowqual);
-                        position = mc._1;
-                        cigar = TextCigarCodec.decode(mc._2);
-                    } else {
-                        position = record.getAlignmentStart();
-                        cigar = record.getCigar();
+                    try {
+                        if (conf.performLocalRealignment) {
+                            // Modify the CIGAR for potential mis-alignment for indels at the end of reads to softclipping and let VarDict's
+                            // algorithm to figure out indels
+                            Tuple2<Integer, String> mc = modifyCigar(indel, ref, record.getAlignmentStart(), record.getCigarString(), querySequence, queryQuality, conf.lowqual);
+                            position = mc._1;
+                            cigar = TextCigarCodec.decode(mc._2);
+                        } else {
+                            position = record.getAlignmentStart();
+                            cigar = record.getCigar();
+                        }                        
+                    } catch (Exception e) {
+                        System.err.println("Realignment failed. " + record.getSAMString());
+                        continue;
                     }
 
                     //adjusted start position
